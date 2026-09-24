@@ -156,6 +156,7 @@
 </div>
 
 <script src="assets/js/config.js"></script>
+<script src="assets/js/main.js"></script>
 <script>
 /* ============ CONFIGURATION ============
    L'URL du script Google se règle UNE SEULE FOIS dans assets/js/config.js */
@@ -208,12 +209,18 @@ form.addEventListener("submit", async (e) => {
   go.disabled = true; go.textContent = "Envoi en cours…";
   try {
     if (!ENDPOINT || ENDPOINT.indexOf("http") !== 0) {
-      console.log("Mode démonstration — données qui seraient envoyées :", payload);
-      await new Promise(r => setTimeout(r, 600));
-    } else {
-      // text/plain évite la requête préalable CORS ; Apps Script lit e.postData.contents
-      await fetch(ENDPOINT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+      /* Aucun serveur n'est configuré : on prépare le message dans le logiciel
+         de messagerie du visiteur pour que l'inscription arrive réellement. */
+      const dest = (window.CALLO.ContactEmailsTexte
+        || (window.CALLO.CONTACT_EMAILS || []).map(c => c.email).join(" et à "));
+      window.location.href = window.calloMailto(payload);
+      go.disabled = false; go.textContent = "Valider mon inscription";
+      show("ok", "Ton message est prêt dans ton logiciel de messagerie, adressé à " + dest
+        + ". Il ne te reste qu'à cliquer sur « Envoyer ». S'il ne s'ouvre pas, écris-nous directement à cette adresse.");
+      return;
     }
+    // text/plain évite la requête préalable CORS ; Apps Script lit e.postData.contents
+    await fetch(ENDPOINT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     form.querySelectorAll("fieldset,.ag,.consent,button,p").forEach(el => el.style.display = "none");
     show("ok", "Merci " + payload.prenom + " ! Ton inscription est enregistrée" + (payload.ag === "Oui" ? " — rendez-vous le vendredi 18 décembre 2026." : payload.ag === "Peut-être" ? " — nous te recontacterons avant le 18 décembre." : ". Tu fais désormais partie de l'annuaire des anciens."));
   } catch (err) {
@@ -222,6 +229,5 @@ form.addEventListener("submit", async (e) => {
   }
 });
 </script>
-<script>(function(){var C=window.CALLO||{};document.querySelectorAll("[data-contact]").forEach(function(a){if(C.CONTACT_EMAIL){a.textContent=C.CONTACT_EMAIL;a.href="mailto:"+C.CONTACT_EMAIL;}});})();</script>
 </body>
 </html>
