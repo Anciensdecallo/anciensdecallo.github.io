@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inscription AG du 18/12 · Les Anciens de Callo</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/logo-polesup.jpg">
+<style>
+  :root{
+    --primary:#454F56; --accent:#7C8A1F; --accent-2:#B0C12C; --ink:#232A2E; --soft:#F5F7EA; --line:#DDE3AE; --bg:#EDEEE8; --muted:#67716B;
+  }
+  body.lycee{ --primary:#C8161D; --accent:#C8161D; --accent-2:#F6B7B9; --ink:#1E2F55; --soft:#FDF2F2; --line:#F2C6C8; --bg:#EEF1F6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.5}
+  .shell{max-width:680px;margin:24px auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+  header{background:var(--primary);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:14px}
+  header img{width:52px;height:52px;border-radius:8px;background:#fff;object-fit:cover}
+  header b{display:block;font-size:15px;letter-spacing:.3px}
+  header span{font-size:12px;opacity:.85}
+  main{padding:34px 32px 10px}
+  .kicker{color:var(--accent);font-size:12px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase}
+  h1{font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:32px;line-height:1.15;margin:10px 0 12px}
+  .lead{color:#4C555A;margin:0 0 20px}
+  .ag{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .ag p{margin:0 0 10px;font-weight:bold}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg label{display:block;text-align:center;padding:13px 6px;border:1px solid #D2D6D2;border-radius:10px;background:#fff;font-weight:bold;cursor:pointer}
+  .seg input:checked + label{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .seg input:focus-visible + label{outline:3px solid var(--accent-2);outline-offset:2px}
+  fieldset{border:0;padding:0;margin:26px 0 0}
+  legend{font-family:Georgia,serif;font-size:20px;margin-bottom:12px;padding:0}
+  legend small{font-family:Arial,sans-serif;font-size:12px;color:var(--muted);margin-left:6px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .full{grid-column:1/-1}
+  label.f{display:block;font-size:13px;font-weight:bold;margin-bottom:4px}
+  label.f i{color:var(--accent);font-style:normal}
+  input[type=text],input[type=email],input[type=tel],input[type=number],select{width:100%;padding:12px;border:1px solid #CfD4D0;border-radius:10px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:2px solid var(--accent-2);border-color:var(--primary)}
+  .consent{margin-top:22px;background:#F7F8F5;border-radius:12px;padding:14px 16px;font-size:13px;color:#4C555A}
+  .consent label{display:flex;gap:10px;align-items:flex-start;margin:6px 0}
+  .consent input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--primary)}
+  button{margin:22px 0 8px;width:100%;padding:16px;border:0;border-radius:12px;background:var(--primary);color:#fff;font-size:17px;font-weight:bold;cursor:pointer}
+  button[disabled]{opacity:.6;cursor:wait}
+  .msg{display:none;padding:16px;border-radius:12px;margin:14px 0;font-weight:bold}
+  .msg.ok{display:block;background:var(--soft);border:1px solid var(--line)}
+  .msg.err{display:block;background:#FFF1F0;border:1px solid #F3B8B3;color:#9B1C1C}
+  .hp{position:absolute;left:-9999px}
+  footer{padding:18px 32px 26px;font-size:11px;color:#6C7871;text-align:center;background:#F1F2ED;margin-top:24px}
+  @media (max-width:560px){ main{padding:26px 16px 6px} header{padding:16px} .grid{grid-template-columns:1fr} h1{font-size:27px} footer{padding:16px} .shell{margin:0;border-radius:0} }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <img id="logo" src="assets/img/logo-polesup.jpg" alt="Marcel Callo">
+    <div><b>LES ANCIENS DE CALLO</b><span id="sub">Pôle Sup Callo · Un réseau à construire ensemble</span></div>
+  </header>
+
+  <main>
+    <div class="kicker">Assemblée Générale constitutive · vendredi 18 décembre 2026</div>
+    <h1>Réserve ta place et rejoins l'annuaire des anciens</h1>
+    <p class="lead">Deux minutes pour nous dire si tu viens et comment te recontacter. Ces informations serviront uniquement à organiser l'AG et à faire vivre le réseau des anciens de Callo.</p>
+
+    <form id="f" novalidate>
+      <div class="ag" role="radiogroup" aria-label="Participation à l'AG">
+        <p>Souhaites-tu participer à l'événement du 18/12&nbsp;? <i style="color:var(--accent);font-style:normal">*</i></p>
+        <div class="seg">
+          <input type="radio" name="ag" id="ag-oui" value="Oui" required><label for="ag-oui">Oui</label>
+          <input type="radio" name="ag" id="ag-pe" value="Peut-être"><label for="ag-pe">Peut-être</label>
+          <input type="radio" name="ag" id="ag-non" value="Non"><label for="ag-non">Non</label>
+        </div>
+      </div>
+
+      <fieldset>
+        <legend>Tes coordonnées</legend>
+        <div class="grid">
+          <div><label class="f" for="nom">Nom <i>*</i></label><input type="text" id="nom" name="nom" autocomplete="family-name" required></div>
+          <div><label class="f" for="prenom">Prénom <i>*</i></label><input type="text" id="prenom" name="prenom" autocomplete="given-name" required></div>
+          <div class="full"><label class="f" for="adresse">Adresse postale <i>*</i></label><input type="text" id="adresse" name="adresse" autocomplete="street-address" required></div>
+          <div><label class="f" for="cp">Code postal <i>*</i></label><input type="text" id="cp" name="cp" inputmode="numeric" autocomplete="postal-code" pattern="[0-9A-Za-z \-]{4,10}" required></div>
+          <div><label class="f" for="ville">Ville <i>*</i></label><input type="text" id="ville" name="ville" autocomplete="address-level2" required></div>
+          <div><label class="f" for="tel">Téléphone mobile <i>*</i></label><input type="tel" id="tel" name="tel" autocomplete="tel" pattern="[0-9+ .()\-]{9,20}" required></div>
+          <div><label class="f" for="email">E-mail <i>*</i></label><input type="email" id="email" name="email" autocomplete="email" required></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ton parcours à Callo</legend>
+        <div class="grid">
+          <div><label class="f" for="promo">Année de promotion (sortie) <i>*</i></label><input type="number" id="promo" name="promo" min="1950" max="2027" placeholder="ex. 1998" required></div>
+          <div><label class="f" for="filiere">Filière suivie <i>*</i></label>
+            <select id="filiere" name="filiere" required>
+              <option value="">— Choisir —</option>
+              <optgroup label="CAP">
+                <option>CAP Maintenance des véhicules</option>
+                <option>CAP Conducteur d'installations de production</option>
+              </optgroup>
+              <optgroup label="Bac professionnel">
+                <option>Bac Pro Maintenance des véhicules</option>
+                <option>Bac Pro Aéronautique</option>
+                <option>Bac Pro Électricité</option>
+                <option>Bac Pro Maintenance des systèmes</option>
+                <option>Bac Pro Technicien en réalisation de produits</option>
+              </optgroup>
+              <optgroup label="FCIL">
+                <option>FCIL FTSMI Structure métallique</option>
+                <option>FCIL Mécanique de précision</option>
+                <option>FCIL MCPM Mécanique de compétition</option>
+              </optgroup>
+              <optgroup label="Lycée général & technologique">
+                <option>Bac Général &amp; Technologique</option>
+              </optgroup>
+              <optgroup label="Pôle Sup">
+                <option>BTS CCST</option>
+                <option>BTS MV</option>
+                <option>BTS ELT</option>
+                <option>CRPR</option>
+                <option>CPGE ATS</option>
+                <option>Bachelor</option>
+              </optgroup>
+              <optgroup label="Autres">
+                <option>Filière historique (Bac F1/F3, BEP, CAP ajusteur, MC…)</option>
+                <option>Autre</option>
+              </optgroup>
+            </select></div>
+          <div class="full" id="precis-wrap" hidden><label class="f" for="precision">Précise ta filière</label><input type="text" id="precision" name="precision" placeholder="ex. Bac F1 construction mécanique, BEP électromécanicien…"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ta vie pro <small>facultatif</small></legend>
+        <div class="grid">
+          <div class="full"><label class="f" for="fonction">Fonction actuelle ou dernière en activité</label><input type="text" id="fonction" name="fonction" autocomplete="organization-title"></div>
+          <div><label class="f" for="entreprise">Entreprise</label><input type="text" id="entreprise" name="entreprise" autocomplete="organization"></div>
+          <div><label class="f" for="lieu">Lieu (ville)</label><input type="text" id="lieu" name="lieu"></div>
+        </div>
+      </fieldset>
+
+      <input class="hp" type="text" name="site_web" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <div class="consent">
+        <label><input type="checkbox" id="rgpd" name="rgpd" required><span><b>J'accepte</b> que mes données soient enregistrées par l'association des anciens de Marcel Callo (en cours de constitution) pour organiser l'AG du 18/12 et gérer l'annuaire des anciens. <i style="color:var(--accent);font-style:normal">*</i></span></label>
+        <label><input type="checkbox" id="optin" name="optin"><span>J'accepte de recevoir les actualités du réseau des anciens par e-mail (désinscription en un clic).</span></label>
+        <p style="margin:8px 0 0">Données conservées 3 ans après le dernier contact, jamais cédées ni vendues. Accès, rectification, suppression : <a data-contact href="#" style="color:var(--primary)">contact</a>. <a id="ml" href="polesup/mentions-legales.html" style="color:var(--primary)">En savoir plus</a>.</p>
+      </div>
+
+      <div id="msg" class="msg" role="status" aria-live="polite"></div>
+      <button type="submit" id="go">Valider mon inscription</button>
+      <p style="font-size:12px;color:var(--muted);text-align:center;margin:0">* champs obligatoires</p>
+    </form>
+  </main>
+
+  <footer><a id="back" href="polesup/index.html" style="color:inherit">← Retour au site</a> · Les Anciens de Callo · Lycée Marcel Callo &amp; Pôle Sup Callo · 21 avenue Étienne Gascon, 35600 Redon</footer>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script>
+/* ============ CONFIGURATION ============
+   L'URL du script Google se règle UNE SEULE FOIS dans assets/js/config.js */
+const ENDPOINT = (window.CALLO && window.CALLO.ENDPOINT) || "";
+/* ======================================= */
+
+const LOGOS = { lycee: "assets/img/logo-lycee.jpg", polesup: "assets/img/logo-polesup.jpg" };
+const qs = new URLSearchParams(location.search);
+const ecole = (qs.get("ecole") || "polesup").toLowerCase() === "lycee" ? "lycee" : "polesup";
+if (ecole === "lycee") {
+  document.body.classList.add("lycee");
+  document.getElementById("logo").src = LOGOS.lycee;
+  document.getElementById("logo").alt = "Lycée Marcel Callo Redon";
+  document.getElementById("sub").textContent = "Lycée Marcel Callo · Un réseau à construire ensemble";
+}
+const em = (qs.get("email") || "").trim();
+if (em && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) document.getElementById("email").value = em;
+document.getElementById("ml").href = ecole + "/mentions-legales.html";
+document.getElementById("back").href = ecole + "/index.html";
+const pre = { "oui":"ag-oui", "peut-etre":"ag-pe", "non":"ag-non" }[(qs.get("ag")||"").toLowerCase()];
+if (pre) document.getElementById(pre).checked = true;
+
+const fil = document.getElementById("filiere"), pw = document.getElementById("precis-wrap");
+fil.addEventListener("change", () => { pw.hidden = !/historique|Autre/.test(fil.value); });
+
+const form = document.getElementById("f"), msg = document.getElementById("msg"), go = document.getElementById("go");
+function show(type, text){ msg.className = "msg " + type; msg.textContent = text; msg.scrollIntoView({behavior:"smooth", block:"center"}); }
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!form.checkValidity()) {
+    const bad = form.querySelector(":invalid");
+    show("err", bad && bad.id === "rgpd" ? "Merci de cocher la case d'accord pour l'enregistrement de tes données." : "Merci de compléter les champs obligatoires (*) correctement.");
+    if (bad) bad.focus();
+    return;
+  }
+  const d = Object.fromEntries(new FormData(form).entries());
+  if (d.site_web) return; // anti-spam
+  const payload = {
+    type: "inscription",
+    ecole: ecole === "lycee" ? "Lycée LGT" : "Pôle Sup",
+    ag: d.ag, nom: d.nom.trim().toUpperCase(), prenom: d.prenom.trim(),
+    adresse: d.adresse.trim(), cp: d.cp.trim(), ville: d.ville.trim(),
+    tel: d.tel.trim(), email: d.email.trim().toLowerCase(),
+    promo: d.promo, filiere: d.filiere, precision: d.precision || "",
+    fonction: d.fonction || "", entreprise: d.entreprise || "", lieu: d.lieu || "",
+    rgpd: "Oui", optin: d.optin ? "Oui" : "Non",
+    source: qs.get("utm_source") || "direct"
+  };
+  go.disabled = true; go.textContent = "Envoi en cours…";
+  try {
+    if (!ENDPOINT || ENDPOINT.indexOf("http") !== 0) {
+      console.log("Mode démonstration — données qui seraient envoyées :", payload);
+      await new Promise(r => setTimeout(r, 600));
+    } else {
+      // text/plain évite la requête préalable CORS ; Apps Script lit e.postData.contents
+      await fetch(ENDPOINT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+    }
+    form.querySelectorAll("fieldset,.ag,.consent,button,p").forEach(el => el.style.display = "none");
+    show("ok", "Merci " + payload.prenom + " ! Ton inscription est enregistrée" + (payload.ag === "Oui" ? " — rendez-vous le vendredi 18 décembre 2026." : payload.ag === "Peut-être" ? " — nous te recontacterons avant le 18 décembre." : ". Tu fais désormais partie de l'annuaire des anciens."));
+  } catch (err) {
+    go.disabled = false; go.textContent = "Valider mon inscription";
+    show("err", "L'envoi n'a pas abouti. Vérifie ta connexion et réessaie.");
+  }
+});
+</script>
+<script>(function(){var C=window.CALLO||{};document.querySelectorAll("[data-contact]").forEach(function(a){if(C.CONTACT_EMAIL){a.textContent=C.CONTACT_EMAIL;a.href="mailto:"+C.CONTACT_EMAIL;}});})();</script>
+</body>
+</html>
