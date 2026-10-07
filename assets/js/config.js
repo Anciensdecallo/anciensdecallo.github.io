@@ -5,7 +5,10 @@ window.CALLO = {
   /* URL de l'application web Google Apps Script (se termine par /exec).
      Tant qu'elle n'est pas renseignée, les formulaires ouvrent le logiciel
      de messagerie du visiteur avec le message déjà prêt à envoyer.
-     Une fois l'URL renseignée, l'envoi devient automatique et silencieux. */
+     Une fois l'URL renseignée, l'envoi devient automatique et silencieux.
+
+     Procédure d'installation (5 min) et script à coller :
+       outils/apps-script/INSTALLATION.md  et  outils/apps-script/Code.gs  */
   ENDPOINT: "",
 
   /* Adresses de contact : destinataires des messages du site.

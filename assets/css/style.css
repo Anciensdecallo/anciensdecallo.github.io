@@ -266,3 +266,19 @@ body.lycee .page-head .kicker{color:#FF9CA0}
   .ev .body{padding:18px 16px}
   .page-head{padding:44px 0 38px}
 }
+
+/* Repères : l'établissement en quelques dates */
+.reperes{padding:44px 0 0}
+.reperes .dates{list-style:none;margin:22px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:10px 22px}
+.reperes .dates li{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:baseline;padding:11px 15px;background:#fff;border:1px solid #E6E8E3;border-radius:12px}
+.reperes .dates b{font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:20px;line-height:1.2;color:var(--primary)}
+.reperes .dates span{color:#3F484D;font-size:15px}
+@media (max-width:560px){
+  .reperes{padding:34px 0 0}
+  .reperes .dates li{grid-template-columns:74px 1fr;gap:10px;padding:10px 12px}
+  .reperes .dates b{font-size:17px}
+}
+
+/* Année « 1984-85 » sur deux chiffres : éviter le retour à la ligne */
+#an-1984-85 .yr{font-size:28px;white-space:nowrap}
+@media (max-width:560px){ #an-1984-85 .yr{font-size:24px} }
