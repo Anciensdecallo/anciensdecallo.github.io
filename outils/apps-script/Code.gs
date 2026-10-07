@@ -73,7 +73,14 @@ function doPost(e) {
 }
 
 // Permet de vérifier l'adresse dans un navigateur (doit renvoyer ok:true).
-function doGet() {
+// Sert aussi de « compteur de visites » : le site appelle /exec?action=visite&…
+// → une ligne est ajoutée dans la feuille « Visites » (voir construireKpi).
+function doGet(e) {
+  var p = (e && e.parameter) || {};
+  if (p.action === "visite") {
+    try { enregistrerVisite(p); } catch (err) { /* ne jamais bloquer le visiteur */ }
+    return reponse({ ok: true });
+  }
   return reponse({ ok: true, service: "Les Anciens de Callo", heure: new Date().toISOString() });
 }
 
@@ -155,7 +162,8 @@ function accuser(d) {
 
 /* ------------------------------ FEUILLE ----------------------------- */
 
-function feuille() {
+/** Renvoie le classeur Google (créé et mémorisé au premier appel). */
+function classeur() {
   var props = PropertiesService.getScriptProperties();
   var id = props.getProperty("FEUILLE_ID");
   var f = null;
@@ -166,6 +174,11 @@ function feuille() {
     f = SpreadsheetApp.create(TITRE_FEUILLE);
     props.setProperty("FEUILLE_ID", f.getId());
   }
+  return f;
+}
+
+function feuille() {
+  var f = classeur();
   var s = f.getSheets()[0];
   if (s.getLastRow() === 0) {
     s.appendRow(["Date", "Type", "École", "Présence AG", "Nom", "Prénom", "E-mail",
@@ -205,4 +218,78 @@ function testEnvoi() {
       + "Destinataires : " + DESTINATAIRES.join(", ") + "\nQuota restant : "
       + MailApp.getRemainingDailyQuota() + " courriels aujourd'hui."
   });
+}
+
+/* ==================================================================== */
+/*  KPI DE PROVENANCE DES VISITEURS                                     */
+/* ==================================================================== */
+/*
+  Principe : à chaque page vue, le site appelle /exec?action=visite&…
+  Une ligne est ajoutée dans la feuille « Visites ». Les inscriptions, elles,
+  sont déjà enregistrées dans la feuille « Inscriptions » avec leur « Origine ».
+  La fonction construireKpi() réunit les deux dans une feuille « KPI » :
+
+     Origine | Visites | Inscriptions | Taux de conversion
+     (la campagne « AC-0123 » = un ancien contacté nominativement)
+
+  Aucun cookie, aucune donnée personnelle n'est stockée pour la mesure :
+  on ne garde que la page, l'origine et, si présent, le site référent.
+*/
+
+function feuilleVisites() {
+  var f = classeur();
+  var nom = "Visites";
+  var s = f.getSheetByName(nom);
+  if (!s) {
+    s = f.insertSheet(nom);
+    s.appendRow(["Date", "Page", "Origine", "Site référent", "Support"]);
+    s.setFrozenRows(1);
+  }
+  return s;
+}
+
+function enregistrerVisite(p) {
+  feuilleVisites().appendRow([
+    new Date(),
+    String(p.page || "").slice(0, 120),
+    String(p.ref || p.origine || "direct").slice(0, 60),
+    String(p.referer || "").slice(0, 160),
+    String(p.ua || "").slice(0, 60)
+  ]);
+}
+
+/** Réunit visites + inscriptions par origine dans une feuille « KPI ». */
+function construireKpi() {
+  var f = classeur();
+  var visites = {};
+  var sv = f.getSheetByName("Visites");
+  if (sv && sv.getLastRow() > 1) {
+    sv.getRange(2, 3, sv.getLastRow() - 1, 1).getValues().forEach(function (r) {
+      var o = (r[0] || "direct") + ""; visites[o] = (visites[o] || 0) + 1;
+    });
+  }
+  var insc = {};
+  var si = f.getSheets()[0];
+  if (si.getLastRow() > 1) {
+    // colonne « Origine » = 19e colonne (voir enregistrer)
+    si.getRange(2, 19, si.getLastRow() - 1, 1).getValues().forEach(function (r) {
+      var o = (r[0] || "direct") + ""; insc[o] = (insc[o] || 0) + 1;
+    });
+  }
+  var origines = {};
+  Object.keys(visites).forEach(function (k) { origines[k] = 1; });
+  Object.keys(insc).forEach(function (k) { origines[k] = 1; });
+  var lignes = Object.keys(origines).sort().map(function (o) {
+    var v = visites[o] || 0, i = insc[o] || 0;
+    return [o, v, i, v ? (Math.round(i / v * 1000) / 10) + " %" : "—"];
+  });
+  var s = f.getSheetByName("KPI");
+  if (s) f.deleteSheet(s);
+  s = f.insertSheet("KPI", 0);
+  s.appendRow(["Origine / campagne", "Visites", "Inscriptions", "Taux de conversion"]);
+  lignes.forEach(function (l) { s.appendRow(l); });
+  s.getRange(1, 1, 1, 4).setFontWeight("bold");
+  s.setFrozenRows(1);
+  s.autoResizeColumns(1, 4);
+  return lignes.length;
 }

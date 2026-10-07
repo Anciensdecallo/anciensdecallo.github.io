@@ -14,6 +14,47 @@
     if (el.tagName === "A") el.href = "mailto:" + contactList;
   });
 
+  /* ---------- Origine de la visite (KPI de provenance) ---------------- */
+  /*  Priorité : ?ref= (lien d'invitation nominatif, ex. AC-0123) puis ?utm_source,
+      puis le site référent (Google, LinkedIn, Copains d'avant, e-mail…).
+      La première origine vue est mémorisée : si le visiteur revient plus tard
+      en direct, on sait d'où il vient. Aucun cookie, aucune donnée personnelle. */
+  var QS = new URLSearchParams(location.search);
+  function hote(u) { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } }
+  function deviner() {
+    var r = QS.get("ref") || QS.get("utm_source") || "";
+    if (!r) {
+      var h = hote(document.referrer);
+      if (h) {
+        if (/google|bing|duckduckgo|qwant|ecosia|yahoo/.test(h)) r = "moteur:" + h;
+        else if (/linkedin/.test(h)) r = "linkedin";
+        else if (/facebook|instagram|messenger/.test(h)) r = "meta";
+        else if (/copainsdavant|linternaute/.test(h)) r = "copainsdavant";
+        else if (/twitter|x\.com|t\.co/.test(h)) r = "x";
+        else if (/mail|webmail|proton|gmail|orange|wanadoo|free|laposte|outlook/.test(h)) r = "e-mail";
+        else r = "site:" + h;
+      } else r = "direct";
+    }
+    return r;
+  }
+  var ORIGINE = deviner();
+  try {
+    if (!localStorage.getItem("callo-origine")) localStorage.setItem("callo-origine", ORIGINE);
+    if (ORIGINE === "direct") ORIGINE = localStorage.getItem("callo-origine") || "direct";
+  } catch (e) {}
+  window.calloOrigine = function () { return ORIGINE; };
+
+  /* Ping de visite : une ligne par page vue dans la feuille « Visites ». */
+  if (!demo) {
+    var u = C.ENDPOINT + "?action=visite&page=" + encodeURIComponent(location.pathname)
+      + "&ref=" + encodeURIComponent(ORIGINE)
+      + "&referer=" + encodeURIComponent(hote(document.referrer))
+      + "&ua=" + encodeURIComponent((navigator.userAgent || "").slice(0, 60))
+      + "&t=" + Date.now();
+    try { (new Image()).src = u; } catch (e) {}
+  }
+
+
   /* ---------- Préparation d'un courriel dans la messagerie du visiteur - */
   var LIBELLES = {
     type: "Type de demande", site: "Site", ecole: "École", ag: "Présence à l'AG",
@@ -93,7 +134,7 @@
       }
       var d = Object.fromEntries(new FormData(cf).entries());
       if (d.site_web) return;
-      var payload = { type: "contact", site: cf.dataset.site, nom: d.nom.trim().toUpperCase(), prenom: d.prenom.trim(), email: d.email.trim().toLowerCase(), tel: d.tel || "", promo: d.promo || "", message: d.message.trim(), rgpd: "Oui", optin: d.optin ? "Oui" : "Non" };
+      var payload = { type: "contact", site: cf.dataset.site, nom: d.nom.trim().toUpperCase(), prenom: d.prenom.trim(), email: d.email.trim().toLowerCase(), tel: d.tel || "", promo: d.promo || "", message: d.message.trim(), rgpd: "Oui", optin: d.optin ? "Oui" : "Non", source: window.calloOrigine() };
 
       /* Aucun serveur configuré : on prépare le message dans la messagerie
          du visiteur pour que la demande arrive réellement aux destinataires. */

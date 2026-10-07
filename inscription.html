@@ -204,7 +204,7 @@ form.addEventListener("submit", async (e) => {
     promo: d.promo, filiere: d.filiere, precision: d.precision || "",
     fonction: d.fonction || "", entreprise: d.entreprise || "", lieu: d.lieu || "",
     rgpd: "Oui", optin: d.optin ? "Oui" : "Non",
-    source: qs.get("utm_source") || "direct"
+    source: qs.get("ref") || qs.get("utm_source") || (window.calloOrigine ? window.calloOrigine() : "direct")
   };
   go.disabled = true; go.textContent = "Envoi en cours…";
   try {
