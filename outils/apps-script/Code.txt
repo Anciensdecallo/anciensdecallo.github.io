@@ -1,17 +1,15 @@
-/**
- * =====================================================================
- *  LES ANCIENS DE CALLO — réception des formulaires du site
- *  Google Apps Script · à coller dans un projet sur script.google.com
- *  Procédure complète : voir INSTALLATION.md (dossier outils/apps-script)
- * =====================================================================
- *
- *  Ce script reçoit les données envoyées par les formulaires du site
- *  (page d'accueil des deux versions + page d'inscription), envoie un
- *  courriel aux destinataires ci-dessous et, pour les inscriptions,
- *  ajoute une ligne dans une feuille Google (créée automatiquement).
- */
+// =====================================================================
+//  LES ANCIENS DE CALLO — réception des formulaires du site
+//  Google Apps Script · à coller dans un projet sur script.google.com
+//  Procédure complète : voir INSTALLATION.md (dossier outils/apps-script)
+// =====================================================================
+//
+//  Ce script reçoit les données envoyées par les formulaires du site
+//  (page d'accueil des deux versions + page d'inscription), envoie un
+//  courriel aux destinataires ci-dessous et, pour les inscriptions,
+//  ajoute une ligne dans une feuille Google (créée automatiquement).
 
-/* ----------------------------- RÉGLAGES ----------------------------- */
+// ----------------------------- RÉGLAGES -----------------------------
 
 // Destinataires de tous les messages du site.
 var DESTINATAIRES = [
@@ -33,7 +31,7 @@ var ACCUSER_RECEPTION = false;
 // Laisser vide tant qu'aucun mot de passe n'est utilisé.
 var CODE_PARTAGE = "";
 
-/* --------------------------- POINTS D'ENTRÉE ------------------------ */
+// --------------------------- POINTS D'ENTRÉE ------------------------
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -77,7 +75,6 @@ function doPost(e) {
 
 // Permet de vérifier l'adresse dans un navigateur (doit renvoyer ok:true).
 // Sert aussi de « compteur de visites » : le site appelle /exec?action=visite&…
-// → une ligne est ajoutée dans la feuille « Visites » (voir construireKpi).
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.action === "visite") {
@@ -93,7 +90,7 @@ function doGet(e) {
   return reponse({ ok: true, service: "Les Anciens de Callo", heure: new Date().toISOString() });
 }
 
-/* ------------------------------ COURRIEL ---------------------------- */
+// ------------------------------ COURRIEL ----------------------------
 
 function sujet(type, d) {
   var qui = [d.nom, d.prenom].filter(String).join(" ").trim() || "visiteur";
@@ -179,9 +176,9 @@ function accuser(d) {
   });
 }
 
-/* ------------------------------ FEUILLE ----------------------------- */
+// ------------------------------ FEUILLE -----------------------------
 
-/** Renvoie le classeur Google (créé et mémorisé au premier appel). */
+// Renvoie le classeur Google (créé et mémorisé au premier appel).
 function classeur() {
   var props = PropertiesService.getScriptProperties();
   var id = props.getProperty("FEUILLE_ID");
@@ -217,7 +214,7 @@ function enregistrer(d) {
   ]);
 }
 
-/* ------------------------------- OUTILS ----------------------------- */
+// ------------------------------- OUTILS -----------------------------
 
 function reponse(objet) {
   return ContentService
@@ -225,10 +222,8 @@ function reponse(objet) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/**
- * À lancer une fois depuis l'éditeur (menu « Exécuter ») pour vérifier
- * l'envoi : le courriel doit arriver aux deux destinataires ci-dessus.
- */
+// À lancer une fois depuis l'éditeur (menu « Exécuter ») pour vérifier
+// l'envoi : le courriel doit arriver aux deux destinataires ci-dessus.
 function testEnvoi() {
   MailApp.sendEmail({
     to: DESTINATAIRES.join(","),
@@ -239,21 +234,15 @@ function testEnvoi() {
   });
 }
 
-/* ==================================================================== */
-/*  KPI DE PROVENANCE DES VISITEURS                                     */
-/* ==================================================================== */
-/*
-  Principe : à chaque page vue, le site appelle /exec?action=visite&…
-  Une ligne est ajoutée dans la feuille « Visites ». Les inscriptions, elles,
-  sont déjà enregistrées dans la feuille « Inscriptions » avec leur « Origine ».
-  La fonction construireKpi() réunit les deux dans une feuille « KPI » :
-
-     Origine | Visites | Inscriptions | Taux de conversion
-     (la campagne « AC-0123 » = un ancien contacté nominativement)
-
-  Aucun cookie, aucune donnée personnelle n'est stockée pour la mesure :
-  on ne garde que la page, l'origine et, si présent, le site référent.
-*/
+// ====================================================================
+//  KPI DE PROVENANCE DES VISITEURS
+// ====================================================================
+//
+//  Principe : à chaque page vue, le site appelle /exec?action=visite&…
+//  Une ligne est ajoutée dans la feuille « Visites ». Les inscriptions, elles,
+//  sont déjà enregistrées dans la feuille « Inscriptions » avec leur « Origine ».
+//  La fonction construireKpi() réunit les deux dans une feuille « KPI ».
+//  Aucun cookie, aucune donnée personnelle n'est stockée pour la mesure.
 
 function feuilleVisites() {
   var f = classeur();
@@ -277,7 +266,7 @@ function enregistrerVisite(p) {
   ]);
 }
 
-/** Réunit visites + inscriptions par origine dans une feuille « KPI ». */
+// Réunit visites + inscriptions par origine dans une feuille « KPI ».
 function construireKpi() {
   var f = classeur();
   var visites = {};
