@@ -9,7 +9,7 @@ window.CALLO = {
 
      Procédure d'installation (5 min) et script à coller :
        outils/apps-script/INSTALLATION.md  et  outils/apps-script/Code.gs  */
-  ENDPOINT: "https://script.google.com/macros/s/AKfycbzA28zQQsFPAySOw81-eyRY3ymBBfUKTn-lQRNtZZTGE19oFO9iD172JcO4I8v3U4zphQ/exec",
+  ENDPOINT: "https://script.google.com/macros/s/AKfycbyRuIixQlKaItO8M8QnLN9cjf-sYqNxw7YzfjyhmjvJczPs7LcfMYPrjifDp7HGKqaQrQ/exec",
 
   /* Adresses de contact : destinataires des messages du site.
      Elles servent aussi d'adresse publique pour les questions et
