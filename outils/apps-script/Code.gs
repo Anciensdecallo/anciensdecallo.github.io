@@ -16,7 +16,7 @@
 // Destinataires de tous les messages du site.
 var DESTINATAIRES = [
   "d.bougreau@lyceemarcelcallo.org",
-  "t.demagnienville@lyceemarcelcallo.org"
+  "anciensdecallo@gmail.com"
 ];
 
 // Nom de la feuille Google créée automatiquement pour les inscriptions.

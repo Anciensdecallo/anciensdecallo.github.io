@@ -15,8 +15,8 @@ window.CALLO = {
      Elles servent aussi d'adresse publique pour les questions et
      l'exercice des droits RGPD (accès, rectification, suppression). */
   CONTACT_EMAILS: [
-    { nom: "David Bougreau",            email: "d.bougreau@lyceemarcelcallo.org" },
-    { nom: "Timothée de Magnienville",  email: "t.demagnienville@lyceemarcelcallo.org" }
+    { nom: "David Bougreau",                    email: "d.bougreau@lyceemarcelcallo.org" },
+    { nom: "Anciens de Callo (boîte commune)",  email: "anciensdecallo@gmail.com" }
   ],
 
   /* Date et heure de l'AG (compte à rebours). */

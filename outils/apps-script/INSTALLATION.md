@@ -9,7 +9,7 @@ s'ouvre dans le logiciel de messagerie du visiteur, déjà adressé et rédigé,
 ne lui reste qu'à cliquer sur « Envoyer ». **Avec cette installation**, l'envoi
 devient automatique et silencieux pour le visiteur.
 
-- Destinataires : `d.bougreau@lyceemarcelcallo.org` et `t.demagnienville@lyceemarcelcallo.org`
+- Destinataires : `d.bougreau@lyceemarcelcallo.org` et `anciensdecallo@gmail.com`
 - Durée : environ 5 minutes
 - À faire une seule fois (compte Google de l'école requis)
 
