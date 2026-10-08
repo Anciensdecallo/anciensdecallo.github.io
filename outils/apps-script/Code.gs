@@ -29,8 +29,9 @@ var ENREGISTRER_DANS_FEUILLE = true;
 var ACCUSER_RECEPTION = false;
 
 // Facultatif : mot de passe partagé. S'il est renseigné ici, il doit être
-// identique dans le site (assets/js/config.js, champ SECRET).
-var SECRET = "";
+// identique dans le site (assets/js/config.js, champ « secret »).
+// Laisser vide tant qu'aucun mot de passe n'est utilisé.
+var MOT_DE_PASSE_PARTAGE = "";
 
 /* --------------------------- POINTS D'ENTRÉE ------------------------ */
 
@@ -47,7 +48,9 @@ function doPost(e) {
 
     // Piège anti-spam : champ invisible rempli par un robot.
     if (d.site_web) return reponse({ ok: true, ignore: true });
-    if (SECRET && d.secret !== SECRET) return reponse({ ok: false, erreur: "secret invalide" });
+    if (MOT_DE_PASSE_PARTAGE && d.secret !== MOT_DE_PASSE_PARTAGE) {
+      return reponse({ ok: false, erreur: "mot de passe invalide" });
+    }
 
     var type = d.type === "inscription" ? "inscription" : "contact";
 
@@ -140,11 +143,21 @@ function corpsHtml(d) {
     + '</b></p><table style="border-collapse:collapse">' + r + '</table>'
     + '<p style="margin:18px 0 0;font-size:12px;color:#5E676C">'
     + 'Répondre à ce courriel écrit directement à la personne si son adresse est renseignée.<br>'
-    + 'Les Anciens de Callo — Lycée Marcel Callo &amp; Pôle Sup Callo, 21 avenue Étienne Gascon, 35600 Redon</p></div>';
+    + 'Les Anciens de Callo — Lycée Marcel Callo ' + AMP() + ' Pôle Sup Callo, 21 avenue Étienne Gascon, 35600 Redon</p></div>';
+}
+
+// Construit l'esperluette HTML sans écrire la séquence littérale, pour que
+// cette fonction reste intacte quel que soit le canal de copier-coller.
+function AMP() {
+  return String.fromCharCode(38);
 }
 
 function echapper(t) {
-  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  var a = AMP();
+  return String(t)
+    .replace(/&/g, a + "amp;")
+    .replace(/</g, a + "lt;")
+    .replace(/>/g, a + "gt;");
 }
 
 function accuser(d) {
