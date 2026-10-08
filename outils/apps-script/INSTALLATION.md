@@ -22,7 +22,9 @@ devient automatique et silencieux pour le visiteur.
 2. Cliquer sur **Nouveau projet**.
 3. En haut à gauche, renommer le projet : `Formulaires anciens Callo`.
 4. Effacer tout le contenu du fichier `Code.gs` affiché, puis y **coller
-   intégralement** le contenu du fichier `Code.gs` de ce dossier.
+   intégralement** le contenu du fichier `Code.txt` de ce dossier
+   (<https://anciensdecallo.github.io/outils/apps-script/Code.txt> — s'affiche
+   dans le navigateur : `Ctrl+A` puis `Ctrl+C`).
 5. Enregistrer (icône disquette ou `Ctrl+S`).
 
 ## 2. Vérifier l'envoi (recommandé)
