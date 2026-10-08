@@ -31,7 +31,7 @@ var ACCUSER_RECEPTION = false;
 // Facultatif : mot de passe partagé. S'il est renseigné ici, il doit être
 // identique dans le site (assets/js/config.js, champ « secret »).
 // Laisser vide tant qu'aucun mot de passe n'est utilisé.
-var MOT_DE_PASSE_PARTAGE = "";
+var CODE_PARTAGE = "";
 
 /* --------------------------- POINTS D'ENTRÉE ------------------------ */
 
@@ -48,7 +48,7 @@ function doPost(e) {
 
     // Piège anti-spam : champ invisible rempli par un robot.
     if (d.site_web) return reponse({ ok: true, ignore: true });
-    if (MOT_DE_PASSE_PARTAGE && d.secret !== MOT_DE_PASSE_PARTAGE) {
+    if (CODE_PARTAGE && d.secret !== CODE_PARTAGE) {
       return reponse({ ok: false, erreur: "mot de passe invalide" });
     }
 
