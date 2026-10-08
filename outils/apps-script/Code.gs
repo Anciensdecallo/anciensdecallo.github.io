@@ -84,6 +84,12 @@ function doGet(e) {
     try { enregistrerVisite(p); } catch (err) { /* ne jamais bloquer le visiteur */ }
     return reponse({ ok: true });
   }
+  // Diagnostic : renvoie les destinataires réellement configurés dans ce
+  // déploiement. Sert à vérifier à distance que la bonne liste est active.
+  // (Ce sont des adresses de contact publiques du site.)
+  if (p.action === "config") {
+    return reponse({ ok: true, destinataires: DESTINATAIRES, feuille: TITRE_FEUILLE });
+  }
   return reponse({ ok: true, service: "Les Anciens de Callo", heure: new Date().toISOString() });
 }
 
