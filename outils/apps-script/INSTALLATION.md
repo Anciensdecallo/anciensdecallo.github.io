@@ -80,6 +80,45 @@ devient automatique et silencieux pour le visiteur.
 
 ---
 
+## 6. Mettre à jour un script déjà installé (KPI renforcé)
+
+Le calcul du KPI a été corrigé : il compte désormais les **visiteurs uniques**
+(et non les pages vues), intègre les **messages de contact**, ignore le **trafic
+de test** et la **navigation interne**, et affiche une ligne **TOTAL**.
+
+1. Ouvrir le projet sur <https://script.google.com>.
+2. Remplacer **tout** le contenu de `Code.gs` par le fichier
+   <https://anciensdecallo.github.io/outils/apps-script/Code.txt> (Ctrl+A, Ctrl+C, Ctrl+V).
+3. Enregistrer, puis **Déployer → Gérer les déploiements → ✏️ → Version : Nouvelle version → Déployer**.
+   L'URL `/exec` ne change pas : rien à modifier dans le site.
+4. Contrôler : <https://script.google.com/macros/s/VOTRE_ID/exec?action=kpi>
+
+**Fermer les contrôles à distance (recommandé).** `?action=kpi` et
+`?action=config` sont lisibles par n'importe qui. Dans `Code.gs`, renseigner
+`JETON_KPI` avec un mot long et imprévisible, redéployer, puis appeler
+`.../exec?action=kpi&token=ce-mot`. La mesure des visites, elle, reste ouverte :
+elle doit fonctionner depuis le navigateur du visiteur.
+
+> Les lignes déjà enregistrées avec les anciennes origines `site` et
+> `site:anciensdecallo.github.io` sont désormais ignorées : le taux de
+> conversion redevient juste sans rien effacer dans la feuille.
+
+## 7. Mesure d'audience (Google Analytics 4)
+
+- Le site **ne charge plus Google Analytics avant l'accord** du visiteur :
+  `assets/js/consent.js` affiche un bandeau « Accepter / Refuser » et n'injecte
+  `gtag.js` qu'en cas d'acceptation. Un refus n'envoie **aucune** requête à Google.
+- Le choix est mémorisé dans le navigateur et modifiable via le lien
+  « gérer mes préférences » des mentions légales.
+- Trois événements de conversion sont envoyés (uniquement si accord) :
+  `form_submit`, `generate_lead`, `form_error`, avec le paramètre `form`
+  (`inscription` ou `contact`).
+- **Pour les voir comme conversions** : dans GA4, *Admin → Événements* →
+  marquer `generate_lead` comme **événement clé**. C'est une action à faire une
+  fois depuis le compte Google propriétaire de la propriété `G-Z9DCCNGT00`.
+
+---
+
 ## Bon à savoir
 
 - **Quota d'envoi** : Google autorise environ 1 500 courriels par jour avec un

@@ -39,6 +39,14 @@ var ACCUSER_RECEPTION = false;
 // Laisser vide tant qu'aucun mot de passe n'est utilisé.
 var CODE_PARTAGE = "";
 
+// Protection des contrôles à distance de la feuille (?action=kpi et
+// ?action=config). Laisser vide = contrôles ouverts, comme avant.
+// Pour les fermer : mettre ici un mot long et imprévisible, redéployer
+// (Déployer → Gérer les déploiements → ✏️ → Nouvelle version), puis appeler
+// .../exec?action=kpi&token=ce-mot. La mesure des visites reste, elle,
+// toujours ouverte : elle doit fonctionner depuis le navigateur du visiteur.
+var JETON_KPI = "";
+
 // --------------------------- POINTS D'ENTRÉE ------------------------
 
 function doPost(e) {
@@ -96,6 +104,11 @@ function doPost(e) {
 // Sert aussi de « compteur de visites » : le site appelle /exec?action=visite&…
 function doGet(e) {
   var p = (e && e.parameter) || {};
+  // Contrôle d'accès : ne s'applique que si JETON_KPI est renseigné.
+  var protege = (p.action === "kpi" || p.action === "config");
+  if (protege && JETON_KPI && String(p.token || "") !== JETON_KPI) {
+    return reponse({ ok: false, erreur: "jeton requis" });
+  }
   if (p.action === "visite") {
     try { enregistrerVisite(p); } catch (err) { /* ne jamais bloquer le visiteur */ }
     return reponse({ ok: true });
@@ -315,7 +328,12 @@ function testEnvoi() {
 //  Aucun cookie, aucune donnée personnelle n'est stockée pour la mesure.
 
 function feuilleVisites() {
-  return onglet(ONGLET_VISITES, ["Date", "Page", "Origine", "Site référent", "Support"]);
+  var s = onglet(ONGLET_VISITES, ["Date", "Page", "Origine", "Site référent", "Support", "Visiteur"]);
+  // Onglet créé avant l'ajout du suivi par visiteur : on complète l'en-tête.
+  if (!s.getRange(1, 6).getValue()) {
+    s.getRange(1, 6).setValue("Visiteur").setFontWeight("bold");
+  }
+  return s;
 }
 
 function enregistrerVisite(p) {
@@ -324,44 +342,87 @@ function enregistrerVisite(p) {
     String(p.page || "").slice(0, 120),
     String(p.ref || p.origine || "direct").slice(0, 60),
     String(p.referer || "").slice(0, 160),
-    String(p.ua || "").slice(0, 60)
+    String(p.ua || "").slice(0, 60),
+    String(p.vid || "").slice(0, 40)
   ]);
 }
 
-// Réunit visites + inscriptions par origine dans l'onglet « KPI ».
-// Renvoie le tableau construit (utilisé aussi par ?action=kpi).
+// Une origine est-elle exploitable dans le KPI ?
+// Renvoie null pour les lignes à ignorer : navigation interne (ancien
+// marquage « site:… ») et essais techniques.
+function origineExploitable(v) {
+  var o = String(v === null || v === undefined ? "" : v).trim();
+  if (!o) return "direct";
+  if (/^(site|site:anciensdecallo\.github\.io)$/i.test(o)) return null;
+  if (/^(test|tests|test-installation|test-damien|verification|v[ée]rification|dev|demo|localhost|curl)/i.test(o)) return null;
+  return o;
+}
+
+// Compte les lignes d'un onglet par origine (colonne indiquée).
+function compterParOrigine(s, col) {
+  var res = {};
+  if (!s || s.getLastRow() < 2) return res;
+  s.getRange(2, col, s.getLastRow() - 1, 1).getValues().forEach(function (r) {
+    var o = origineExploitable(r[0]);
+    if (!o) return;
+    res[o] = (res[o] || 0) + 1;
+  });
+  return res;
+}
+
+// Réunit pages vues, visiteurs uniques, inscriptions et messages par origine
+// dans l'onglet « KPI ». Renvoie le tableau construit (aussi ?action=kpi).
 function construireKpi() {
   var f = classeur();
-  var visites = {};
+  var pages = {}, uniques = {};
+
   var sv = f.getSheetByName(ONGLET_VISITES);
   if (sv && sv.getLastRow() > 1) {
-    sv.getRange(2, 3, sv.getLastRow() - 1, 1).getValues().forEach(function (r) {
-      var o = (r[0] || "direct") + ""; visites[o] = (visites[o] || 0) + 1;
+    var n = sv.getLastRow() - 1;
+    var vals = sv.getRange(2, 1, n, 6).getValues();
+    vals.forEach(function (r, i) {
+      var o = origineExploitable(r[2]);
+      if (!o) return;
+      pages[o] = (pages[o] || 0) + 1;
+      // Lignes antérieures au suivi par visiteur : chacune compte pour un.
+      var vid = String(r[5] || "").trim() || ("ancien-" + i);
+      if (!uniques[o]) uniques[o] = {};
+      uniques[o][vid] = 1;
     });
   }
-  var insc = {};
-  // Onglet des inscriptions, identifié par son NOM (voir feuille()).
-  var si = feuille();
-  if (si.getLastRow() > 1) {
-    // colonne « Origine » = 19e colonne (voir enregistrerInscription)
-    si.getRange(2, 19, si.getLastRow() - 1, 1).getValues().forEach(function (r) {
-      var o = (r[0] || "direct") + ""; insc[o] = (insc[o] || 0) + 1;
-    });
-  }
+
+  // Colonne « Origine » : 19e pour les inscriptions, 10e pour les messages.
+  var insc = compterParOrigine(feuille(), 19);
+  var msgs = compterParOrigine(f.getSheetByName(ONGLET_MESSAGES), 10);
+
   var origines = {};
-  Object.keys(visites).forEach(function (k) { origines[k] = 1; });
-  Object.keys(insc).forEach(function (k) { origines[k] = 1; });
-  var lignes = Object.keys(origines).sort().map(function (o) {
-    var v = visites[o] || 0, i = insc[o] || 0;
-    return [o, v, i, v ? (Math.round(i / v * 1000) / 10) + " %" : "—"];
+  [pages, insc, msgs, uniques].forEach(function (m) {
+    Object.keys(m).forEach(function (k) { origines[k] = 1; });
   });
+
+  var lignes = Object.keys(origines).map(function (o) {
+    var v = pages[o] || 0;
+    var u = uniques[o] ? Object.keys(uniques[o]).length : 0;
+    var i = insc[o] || 0;
+    var m = msgs[o] || 0;
+    var taux = u ? (Math.round(i / u * 1000) / 10) + " %" : "—";
+    return [o, v, u, i, m, taux];
+  }).sort(function (a, b) { return b[2] - a[2] || b[1] - a[1] || (a[0] < b[0] ? -1 : 1); });
+
+  // Ligne de totaux.
+  var tv = 0, tu = 0, ti = 0, tm = 0;
+  lignes.forEach(function (l) { tv += l[1]; tu += l[2]; ti += l[3]; tm += l[4]; });
+  lignes.push(["TOTAL", tv, tu, ti, tm, tu ? (Math.round(ti / tu * 1000) / 10) + " %" : "—"]);
+
   var s = f.getSheetByName(ONGLET_KPI);
   if (s) f.deleteSheet(s);
   s = f.insertSheet(ONGLET_KPI, 0);
-  s.appendRow(["Origine / campagne", "Visites", "Inscriptions", "Taux de conversion"]);
+  s.appendRow(["Origine / campagne", "Pages vues", "Visiteurs uniques",
+    "Inscriptions", "Messages", "Conversion (inscriptions / visiteurs)"]);
   lignes.forEach(function (l) { s.appendRow(l); });
-  s.getRange(1, 1, 1, 4).setFontWeight("bold");
+  s.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#E8EDD0");
+  s.getRange(s.getLastRow(), 1, 1, 6).setFontWeight("bold");
   s.setFrozenRows(1);
-  s.autoResizeColumns(1, 4);
+  s.autoResizeColumns(1, 6);
   return lignes;
 }
