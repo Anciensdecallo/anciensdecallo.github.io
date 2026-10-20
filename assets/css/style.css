@@ -282,3 +282,28 @@ body.lycee .page-head .kicker{color:#FF9CA0}
 /* Année « 1984-85 » sur deux chiffres : éviter le retour à la ligne */
 #an-1984-85 .yr{font-size:28px;white-space:nowrap}
 @media (max-width:560px){ #an-1984-85 .yr{font-size:24px} }
+
+/* =====================================================================
+   BANDEAU DE CONSENTEMENT (mesure d'audience)
+   ===================================================================== */
+#callo-consent{position:fixed;left:0;right:0;bottom:0;z-index:300;background:#fff;
+  border-top:4px solid var(--primary);box-shadow:0 -10px 34px rgba(0,0,0,.22);padding:16px 18px}
+#callo-consent .cc-in{max-width:1120px;margin:0 auto;display:flex;align-items:center;
+  justify-content:space-between;gap:20px;flex-wrap:wrap}
+#callo-consent .cc-txt{margin:0;font-size:15px;line-height:1.45;color:var(--ink);flex:1 1 460px}
+#callo-consent .cc-txt b{font-weight:bold}
+#callo-consent .cc-txt a{color:var(--accent-ink);font-weight:bold;text-decoration:underline}
+#callo-consent .cc-btns{display:flex;gap:12px;flex:0 0 auto}
+#callo-consent .btn{cursor:pointer;font-family:inherit;border:0;padding:14px 28px;font-size:16px;
+  font-weight:bold;border-radius:12px}
+#callo-consent .cc-no{background:#fff;color:var(--ink);border:3px solid var(--primary)}
+#callo-consent .cc-no:hover{background:var(--soft)}
+#callo-consent .cc-yes:hover{transform:translateY(-2px)}
+@media (max-width:620px){
+  #callo-consent{padding:14px 14px 18px}
+  #callo-consent .cc-btns{width:100%}
+  #callo-consent .cc-btns .btn{flex:1;padding:14px 12px}
+}
+
+/* Lien « gérer mes préférences » (mentions légales) */
+[data-consent-reset]{font-weight:bold;text-decoration:underline;cursor:pointer}
