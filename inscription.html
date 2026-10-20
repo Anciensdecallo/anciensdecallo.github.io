@@ -227,7 +227,14 @@ form.addEventListener("submit", async (e) => {
     // text/plain évite la requête préalable CORS ; Apps Script lit e.postData.contents
     await fetch(ENDPOINT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     form.querySelectorAll("fieldset,.ag,.consent,button,p").forEach(el => el.style.display = "none");
-    show("ok", "Merci " + payload.prenom + " ! Ton inscription est enregistrée" + (payload.ag === "Oui" ? " — rendez-vous le vendredi 18 décembre 2026." : payload.ag === "Peut-être" ? " — nous te recontacterons avant le 18 décembre." : ". Tu fais désormais partie de l'annuaire des anciens."));
+    /* Le titre et le chapeau sont EN DEHORS du formulaire : sans ce correctif,
+       la page continue d'afficher « Réserve ta place et rejoins l'annuaire »
+       alors que l'inscription est déjà faite. */
+    const titre = document.querySelector("main h1"),
+          chapeau = document.querySelector("main .lead");
+    if (titre) titre.textContent = "Merci " + payload.prenom + " !";
+    if (chapeau) chapeau.style.display = "none";
+    show("ok", "Ton inscription est enregistrée" + (payload.ag === "Oui" ? " — rendez-vous le vendredi 18 décembre 2026." : payload.ag === "Peut-être" ? " — nous te recontacterons avant le 18 décembre." : ". Tu fais désormais partie de l'annuaire des anciens."));
     if (window.calloTrack) window.calloTrack("generate_lead", { form: "inscription", ecole: payload.ecole, ag: payload.ag });
   } catch (err) {
     go.disabled = false; go.textContent = "Valider mon inscription";
