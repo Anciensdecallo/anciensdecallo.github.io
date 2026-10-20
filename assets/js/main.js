@@ -25,6 +25,10 @@
     var r = QS.get("ref") || QS.get("utm_source") || "";
     if (!r) {
       var h = hote(document.referrer);
+      /* Navigation interne : le site référent est notre propre domaine.
+         On l'ignore, sinon chaque changement de page crée une fausse
+         origine « site:anciensdecallo.github.io » qui fausse le KPI. */
+      if (h === location.hostname.replace(/^www\./, "")) h = "";
       if (h) {
         if (/google|bing|duckduckgo|qwant|ecosia|yahoo/.test(h)) r = "moteur:" + h;
         else if (/linkedin/.test(h)) r = "linkedin";
@@ -44,9 +48,24 @@
   } catch (e) {}
   window.calloOrigine = function () { return ORIGINE; };
 
+  /* Identifiant de visiteur aléatoire, gardé dans le navigateur du visiteur.
+     Ce n'est ni un cookie, ni une donnée personnelle : il permet simplement
+     de compter des VISITEURS UNIQUES au lieu de compter des pages vues. */
+  function visiteur() {
+    var v = "";
+    try { v = localStorage.getItem("callo-vid") || ""; } catch (e) {}
+    if (!v) {
+      v = "v" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      try { localStorage.setItem("callo-vid", v); } catch (e) {}
+    }
+    return v;
+  }
+  window.calloVisiteur = visiteur;
+
   /* Ping de visite : une ligne par page vue dans la feuille « Visites ». */
   if (!demo) {
     var u = C.ENDPOINT + "?action=visite&page=" + encodeURIComponent(location.pathname)
+      + "&vid=" + encodeURIComponent(visiteur())
       + "&ref=" + encodeURIComponent(ORIGINE)
       + "&referer=" + encodeURIComponent(hote(document.referrer))
       + "&ua=" + encodeURIComponent((navigator.userAgent || "").slice(0, 60))
@@ -147,9 +166,15 @@
       }
 
       go.disabled = true; go.textContent = "Envoi…";
+      /* Entonnoir de conversion (GA4, uniquement si le visiteur a accepté). */
+      if (window.calloTrack) window.calloTrack("form_submit", { form: "contact", ecole: payload.site });
       window.calloSend(payload).then(function () {
         cf.reset(); show("ok", "Merci " + payload.prenom + " ! Votre message est bien parti. Nous revenons vers vous très vite.");
-      }).catch(function () { show("err", "L'envoi n'a pas abouti, merci de réessayer."); })
+        if (window.calloTrack) window.calloTrack("generate_lead", { form: "contact", ecole: payload.site });
+      }).catch(function () {
+        show("err", "L'envoi n'a pas abouti, merci de réessayer.");
+        if (window.calloTrack) window.calloTrack("form_error", { form: "contact", ecole: payload.site });
+      })
         .then(function () { go.disabled = false; go.textContent = "Envoyer"; });
     });
   }

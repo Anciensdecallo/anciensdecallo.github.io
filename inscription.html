@@ -1,15 +1,8 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z9DCCNGT00"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-Z9DCCNGT00');
-</script>
+<!-- Mesure d'audience : Google Analytics n'est chargé qu'après accord explicite du visiteur. -->
+<script src="assets/js/consent.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inscription AG du 18/12 · Les Anciens de Callo</title>
@@ -213,9 +206,12 @@ form.addEventListener("submit", async (e) => {
     promo: d.promo, filiere: d.filiere, precision: d.precision || "",
     fonction: d.fonction || "", entreprise: d.entreprise || "", lieu: d.lieu || "",
     rgpd: "Oui", optin: d.optin ? "Oui" : "Non",
-    source: qs.get("ref") || qs.get("utm_source") || (window.calloOrigine ? window.calloOrigine() : "direct")
+    source: window.calloOrigine ? window.calloOrigine()
+      : (qs.get("ref") || qs.get("utm_source") || "direct")
   };
   go.disabled = true; go.textContent = "Envoi en cours…";
+  /* Entonnoir de conversion (GA4, uniquement si le visiteur a accepté). */
+  if (window.calloTrack) window.calloTrack("form_submit", { form: "inscription", ecole: payload.ecole });
   try {
     if (!ENDPOINT || ENDPOINT.indexOf("http") !== 0) {
       /* Aucun serveur n'est configuré : on prépare le message dans le logiciel
@@ -232,9 +228,11 @@ form.addEventListener("submit", async (e) => {
     await fetch(ENDPOINT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     form.querySelectorAll("fieldset,.ag,.consent,button,p").forEach(el => el.style.display = "none");
     show("ok", "Merci " + payload.prenom + " ! Ton inscription est enregistrée" + (payload.ag === "Oui" ? " — rendez-vous le vendredi 18 décembre 2026." : payload.ag === "Peut-être" ? " — nous te recontacterons avant le 18 décembre." : ". Tu fais désormais partie de l'annuaire des anciens."));
+    if (window.calloTrack) window.calloTrack("generate_lead", { form: "inscription", ecole: payload.ecole, ag: payload.ag });
   } catch (err) {
     go.disabled = false; go.textContent = "Valider mon inscription";
     show("err", "L'envoi n'a pas abouti. Vérifie ta connexion et réessaie.");
+    if (window.calloTrack) window.calloTrack("form_error", { form: "inscription", ecole: payload.ecole });
   }
 });
 </script>
