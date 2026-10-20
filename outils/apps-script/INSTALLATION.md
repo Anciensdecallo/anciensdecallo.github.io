@@ -93,11 +93,21 @@ de test** et la **navigation interne**, et affiche une ligne **TOTAL**.
    L'URL `/exec` ne change pas : rien à modifier dans le site.
 4. Contrôler : <https://script.google.com/macros/s/VOTRE_ID/exec?action=kpi>
 
-**Fermer les contrôles à distance (recommandé).** `?action=kpi` et
-`?action=config` sont lisibles par n'importe qui. Dans `Code.gs`, renseigner
-`JETON_KPI` avec un mot long et imprévisible, redéployer, puis appeler
-`.../exec?action=kpi&token=ce-mot`. La mesure des visites, elle, reste ouverte :
-elle doit fonctionner depuis le navigateur du visiteur.
+**Fermer les contrôles à distance (facultatif, faible enjeu).** `?action=kpi`
+et `?action=config` sont lisibles par n'importe qui. Ils ne renvoient que des
+**compteurs agrégés** (aucune donnée personnelle) et les deux adresses de contact
+déjà publiques sur le site : l'intérêt de les fermer est donc limité.
+
+⚠️ **Ne jamais écrire le jeton dans ce fichier** : `Code.gs` et `Code.txt` sont
+publiés sur un dépôt GitHub **public**, le mot serait visible de tous. Si vous
+fermez l'accès, faites-le **uniquement dans l'éditeur Apps Script** (variable
+`JETON_KPI`), **sans jamais coller le jeton ici ni le committer**. L'éditeur et
+le dépôt divergent alors sur cette seule ligne : c'est normal et sans risque.
+
+À noter : ce jeton ne protège **pas** contre un gonflement artificiel des visites
+(`?action=visite` doit rester ouvert pour fonctionner depuis le navigateur). La
+protection réelle contre les comptages en double, c'est le suivi par **visiteur
+unique** introduit à l'étape 6.
 
 > Les lignes déjà enregistrées avec les anciennes origines `site` et
 > `site:anciensdecallo.github.io` sont désormais ignorées : le taux de
