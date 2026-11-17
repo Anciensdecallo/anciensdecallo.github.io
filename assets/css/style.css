@@ -119,6 +119,7 @@ body.lycee .tl-item:after{background:#FF6B70}
 .ag{background:var(--primary);color:#fff;border-radius:26px;padding:48px;display:grid;grid-template-columns:auto 1fr auto;gap:40px;align-items:center}
 .ag .date{text-align:center;border-right:1px solid rgba(255,255,255,.3);padding-right:40px}
 .ag .date small{display:block;font-size:13px;letter-spacing:1.5px;font-weight:bold;opacity:.85}
+.ag .date .heure{display:inline-block;margin-top:12px;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;opacity:1}
 .ag .date b{font-family:Georgia,serif;font-weight:normal;font-size:84px;line-height:1}
 .ag h2{margin:0 0 8px;font-size:clamp(26px,3vw,36px)}
 .ag p{margin:0;opacity:.9}
