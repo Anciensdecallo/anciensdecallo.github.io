@@ -27,6 +27,9 @@ var ONGLET_INSCRIPTIONS = "Inscriptions";
 var ONGLET_MESSAGES = "Messages";
 var ONGLET_VISITES = "Visites";
 var ONGLET_KPI = "KPI";
+// Vue consolidée (inscriptions + messages). Onglet CALCULÉ : il est
+// entièrement réécrit à partir des deux onglets sources, jamais l'inverse.
+var ONGLET_CONTACTS = "CONTACTS";
 
 // Mettre true pour conserver une trace de chaque inscription dans la feuille.
 var ENREGISTRER_DANS_FEUILLE = true;
@@ -258,12 +261,16 @@ function feuille() {
   if (!s) {
     var cands = f.getSheets();
     for (var i = 0; i < cands.length; i++) {
+      var nomCand = cands[i].getName();
+      // Ne JAMAIS prendre l'onglet calculé pour l'onglet des inscriptions.
+      if (nomCand === ONGLET_CONTACTS || nomCand === ONGLET_KPI) continue;
       if (String(cands[i].getRange(1, 1).getValue()) === "Date") { s = cands[i]; break; }
     }
     if (!s) {
       for (var j = 0; j < cands.length; j++) {
         var n = cands[j].getName();
         if (n !== ONGLET_KPI && n !== ONGLET_MESSAGES && n !== ONGLET_VISITES
+            && n !== ONGLET_CONTACTS
             && cands[j].getLastRow() === 0) { s = cands[j]; break; }
       }
     }
@@ -286,6 +293,18 @@ function enregistrerInscription(d) {
     d.promo || "", d.filiere || "", d.precision || "", d.fonction || "", d.entreprise || "",
     d.lieu || "", d.optin || "Non", d.source || ""
   ]);
+  // Copie de confort dans l'onglet consolidé. L'inscription est DÉJÀ écrite
+  // ci-dessus : si cette copie échoue, aucune donnée n'est perdue.
+  try {
+    ajouterContact({
+      date: new Date(), source: "Inscription AG", ecole: d.ecole || "",
+      nom: d.nom || "", prenom: d.prenom || "", email: d.email || "", tel: d.tel || "",
+      annee: anneePromo(d.promo), brut: d.promo || "", ag: d.ag || "",
+      txt: [d.fonction, d.entreprise].filter(String).join(" — "),
+      ville: d.ville || "",
+      filiere: (d.filiere || "") + (d.precision ? " " + d.precision : "")
+    });
+  } catch (errContacts) { /* on ne bloque jamais l'enregistrement */ }
 }
 
 // Onglet des messages de contact (tout ce qui n'est pas une inscription).
@@ -295,6 +314,198 @@ function enregistrerMessage(d) {
     new Date(), d.site || "", d.nom || "", d.prenom || "", d.email || "", d.tel || "",
     d.promo || "", d.message || "", d.optin || "Non", d.source || ""
   ]);
+  try {
+    ajouterContact({
+      date: new Date(), source: "Message site", ecole: d.site || "",
+      nom: d.nom || "", prenom: d.prenom || "", email: d.email || "", tel: d.tel || "",
+      annee: anneePromo(d.promo) || anneePromo(d.message),
+      brut: d.promo || "", ag: "", txt: d.message || "",
+      ville: "", filiere: ""
+    });
+  } catch (errContacts2) { /* on ne bloque jamais l'enregistrement */ }
+}
+
+// ====================================================================
+//  ONGLET « CONTACTS » — vue unique, recalculée
+// ====================================================================
+//
+//  Rôle : réunir dans UN seul onglet les inscriptions (adhésion + présence
+//  AG) et les messages reçus par le site, avec l'année de promo normalisée.
+//
+//  Règles de sécurité des données (à ne pas assouplir) :
+//   - « Inscriptions » et « Messages » restent la SEULE source de vérité.
+//     Ce code ne les écrit jamais, ne les efface jamais, ne les renomme
+//     jamais : il ne fait que les lire.
+//   - L'onglet CONTACTS est une copie calculate : il peut être reconstruit
+//     à tout moment sans rien perdre, puisque rien n'y est unique.
+//   - Aucune suppression d'onglet. On efface uniquement le contenu de
+//     l'onglet CONTACTS lui-même, après avoir lu toutes les sources.
+//   - Un échec ici ne bloque jamais un formulaire (appels sous try/catch).
+
+var ENTETES_CONTACTS = ["Date", "Source", "École / section", "Nom", "Prénom",
+  "E-mail", "Téléphone", "Année promo", "Promo déclarée", "Présence AG",
+  "Fonction / message", "Ville", "Filière"];
+
+// Année de promo à partir d'un texte libre : « 1996 : BEP, 1998 : Bac STI »
+// donne 1996, « Bac général 2022 » donne 2022, « » reste vide.
+function anneePromo(v) {
+  var m = String(v || "").match(/(19[5-9][0-9]|20[0-2][0-9])/);
+  return m ? m[1] : "";
+}
+
+function feuilleContacts() {
+  var f = classeur();
+  var s = f.getSheetByName(ONGLET_CONTACTS);
+  if (!s) s = f.insertSheet(ONGLET_CONTACTS);
+  return s;
+}
+
+// Horodatage d'une cellule, quelle que soit sa forme : vraie date, texte
+// (« 2026-11-04 ») ou nombre. 0 si illisible, pour ne jamais fausser le tri.
+function tsContact(v) {
+  if (v instanceof Date || Object.prototype.toString.call(v) === "[object Date]") {
+    return new Date(v).getTime();
+  }
+  if (typeof v === "number") return v;
+  if (typeof v === "string") {
+    var t = Date.parse(v.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1"));
+    return isNaN(t) ? 0 : t;
+  }
+  return 0;
+}
+
+// Lecture des deux onglets sources, sans aucune écriture.
+function lignesContacts() {
+  var f = classeur();
+  var out = [];
+
+  var si = f.getSheetByName(ONGLET_INSCRIPTIONS);
+  if (si && si.getLastRow() > 1) {
+    // Date, Type, École, Présence AG, Nom, Prénom, E-mail, Téléphone, Adresse,
+    // CP, Ville, Promotion, Filière, Précision, Fonction, Entreprise, Lieu,
+    // Actualités, Origine
+    si.getRange(2, 1, si.getLastRow() - 1, 19).getValues().forEach(function (r) {
+      if (!r[4] && !r[6]) return;             // ligne vide : ignorée
+      out.push([
+        r[0], "Inscription AG", r[2], r[4], r[5], r[6], r[7],
+        anneePromo(r[11]), r[11], r[3],
+        [r[14], r[15]].filter(String).join(" — "), r[10],
+        (r[12] || "") + (r[13] ? " " + r[13] : "")
+      ]);
+    });
+  }
+
+  var sm = f.getSheetByName(ONGLET_MESSAGES);
+  if (sm && sm.getLastRow() > 1) {
+    // Date, Site, Nom, Prénom, E-mail, Téléphone, Promotion, Message,
+    // Actualités, Origine — pas de présence AG dans ce formulaire.
+    sm.getRange(2, 1, sm.getLastRow() - 1, 10).getValues().forEach(function (r) {
+      if (!r[2] && !r[4]) return;
+      out.push([
+        r[0], "Message site", r[1], r[2], r[3], r[4], r[5],
+        anneePromo(r[6]) || anneePromo(r[7]), r[6], "",
+        r[7], "", ""
+      ]);
+    });
+  }
+
+  out.sort(function (a, b) {
+    return tsContact(b[0]) - tsContact(a[0]);
+  });
+  return out;
+}
+
+// Reconstruit l'onglet CONTACTS. Idempotent, relançable à tout moment.
+// Ne touche à aucun autre onglet.
+function construireContacts() {
+  var lignes = lignesContacts();          // TOUT est lu avant d'écrire quoi que ce soit
+  var s = feuilleContacts();
+
+  var vals = [ENTETES_CONTACTS].concat(lignes);
+  s.getRange(1, 1, s.getMaxRows(), s.getMaxColumns()).clearContent();
+  s.getRange(1, 1, vals.length, ENTETES_CONTACTS.length).setValues(vals);
+
+  s.getRange(1, 1, 1, ENTETES_CONTACTS.length)
+    .setFontWeight("bold").setBackground("#E8EDD0").setVerticalAlignment("middle");
+  s.getRange(1, 1, vals.length, ENTETES_CONTACTS.length).setVerticalAlignment("top");
+  s.setFrozenRows(1);
+  if (vals.length > 1) {
+    s.getRange(2, 1, vals.length - 1, 1).setNumberFormat("dd/MM/yyyy HH:mm");
+  }
+  s.setColumnWidth(1, 125);
+  s.setColumnWidth(2, 120);
+  s.setColumnWidth(3, 130);
+  s.setColumnWidth(8, 85);
+  s.setColumnWidth(9, 165);
+  s.setColumnWidth(10, 95);
+  s.setColumnWidth(11, 320);
+  try {
+    if (!s.getFilter()) s.getRange(1, 1, vals.length, ENTETES_CONTACTS.length).createFilter();
+  } catch (eFiltre) { /* filtre déjà posé ou plage protégée : sans conséquence */ }
+  try {
+    if (!s.getRange("A1").getNote()) {
+      s.getRange("A1").setNote(
+        "Onglet recalculé automatiquement à partir de « Inscriptions » et « Messages ».\n"
+        + "Ne rien saisir ici : toute modification serait écrasée au prochain calcul.\n"
+        + "Pour le reconstruire : menu « Anciens de Callo » → Reconstruire l'onglet CONTACTS.");
+    }
+  } catch (eNote) { /* sans conséquence */ }
+
+  var nbInsc = 0, nbMsg = 0;
+  lignes.forEach(function (l) { if (l[1] === "Inscription AG") nbInsc++; else nbMsg++; });
+  return { lignes: lignes.length, insc: nbInsc, msg: nbMsg };
+}
+
+// Ajout d'une seule ligne (utilisé à chaque formulaire reçu) : beaucoup plus
+// léger qu'une reconstruction complète, qui reste disponible au menu.
+function ajouterContact(c) {
+  var s = feuilleContacts();
+  if (s.getLastRow() === 0) {
+    s.appendRow(ENTETES_CONTACTS);
+    s.getRange(1, 1, 1, ENTETES_CONTACTS.length)
+      .setFontWeight("bold").setBackground("#E8EDD0");
+    s.setFrozenRows(1);
+  }
+  s.appendRow([c.date, c.source, c.ecole, c.nom, c.prenom, c.email, c.tel,
+    c.annee, c.brut, c.ag, c.txt, c.ville, c.filiere]);
+}
+
+// ------------------------------ MENU --------------------------------
+
+function onOpen() {
+  try {
+    SpreadsheetApp.getUi().createMenu("Anciens de Callo")
+      .addItem("Reconstruire l'onglet CONTACTS", "menuReconstruireContacts")
+      .addItem("Vérifier les compteurs", "menuVerifierContacts")
+      .addToUi();
+  } catch (e) { /* contexte sans interface (déclencheur) : on ignore */ }
+}
+
+function menuReconstruireContacts() {
+  var r = construireContacts();
+  SpreadsheetApp.getUi().alert(
+    "Onglet CONTACTS reconstruit : " + r.lignes + " lignes.\n"
+    + "dont inscriptions : " + r.insc + " — messages : " + r.msg + "\n\n"
+    + "Aucune donnée n'a été supprimée des onglets Inscriptions et Messages.");
+}
+
+// Contrôle de cohérence : compare les lignes des onglets sources à celles de
+// l'onglet CONTACTS. Aucune donnée personnelle n'est affichée, que des comptes.
+function menuVerifierContacts() {
+  var f = classeur();
+  var si = f.getSheetByName(ONGLET_INSCRIPTIONS);
+  var sm = f.getSheetByName(ONGLET_MESSAGES);
+  var sc = f.getSheetByName(ONGLET_CONTACTS);
+  var nIns = si ? Math.max(si.getLastRow() - 1, 0) : 0;
+  var nMsg = sm ? Math.max(sm.getLastRow() - 1, 0) : 0;
+  var nCon = sc ? Math.max(sc.getLastRow() - 1, 0) : 0;
+  SpreadsheetApp.getUi().alert(
+    "Inscriptions : " + nIns + "\nMessages : " + nMsg + "\n"
+    + "Total attendu : " + (nIns + nMsg) + "\nLignes dans CONTACTS : " + nCon + "\n\n"
+    + (nIns + nMsg === nCon
+      ? "Cohérent : rien ne manque."
+      : "Écart détecté. Lancer « Reconstruire l'onglet CONTACTS » pour réaligner.\n"
+        + "(Les lignes de recette interne sont comptées des deux côtés.)"));
 }
 
 // ------------------------------- OUTILS -----------------------------

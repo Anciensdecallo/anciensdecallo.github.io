@@ -113,6 +113,38 @@ unique** introduit à l'étape 6.
 > `site:anciensdecallo.github.io` sont désormais ignorées : le taux de
 > conversion redevient juste sans rien effacer dans la feuille.
 
+## 6 bis. Onglet « CONTACTS » : voir tous les contacts d'un seul coup d'œil
+
+`CONTACTS` est un onglet **calculé** qui réunit les inscriptions (adhésion +
+présence AG) et les messages reçus par le site, avec l'année de promo
+normalisée. C'est la vue unique demandée pour filtrer « AG Oui / Peut-être » en
+incluant ceux qui écrivent par le formulaire de contact.
+
+**Ce que le code garantit — à ne pas assouplir :**
+
+- `Inscriptions` et `Messages` restent la **seule source de vérité**. Le code ne
+  les écrit jamais, ne les efface jamais, ne les renomme jamais : il les lit.
+- Rien n'est unique dans `CONTACTS` : l'onglet peut être reconstruit à tout
+  moment sans perte.
+- Aucun onglet n'est supprimé. Seul le contenu de `CONTACTS` est réécrit.
+- Un échec du calcul ne bloque **jamais** un formulaire (appels sous `try`).
+- Aucun accès externe n'est ouvert : les données restent dans le classeur et
+  héritent des droits existants. Pas d'URL, pas de jeton.
+
+**Mise en service (5 minutes) :**
+
+1. Coller le nouveau `Code.gs` comme à l'étape 6, puis redéployer
+   (**Gérer les déploiements → ✏️ → Nouvelle version**).
+2. Recharger le classeur : un menu **« Anciens de Callo »** apparaît.
+3. Menu → **Reconstruire l'onglet CONTACTS** : les lignes déjà collectées sont
+   reprises d'un coup (rétro-remplissage).
+4. Menu → **Vérifier les compteurs** : compare les lignes des deux onglets
+   sources à celles de `CONTACTS`. Doit afficher « Cohérent : rien ne manque ».
+
+Ensuite, chaque formulaire reçu ajoute sa ligne à `CONTACTS` automatiquement.
+Ne rien saisir dans cet onglet : ce serait écrasé au prochain calcul (un
+avertissement est posé en note sur la cellule A1).
+
 ## 7. Mesure d'audience (Google Analytics 4)
 
 - Le site **ne charge plus Google Analytics avant l'accord** du visiteur :
